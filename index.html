@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Escáner QR - Gimnasio</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+    h2 { color: #222; }
+    #lector { max-width: 500px; margin: 20px auto; }
+    #resultado {
+      margin: 20px auto;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      max-width: 500px;
+      font-size: 18px;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>Registro de asistencia</h2>
+  <p>Escanea el código QR del integrante.</p>
+  <div id="lector"></div>
+  <div id="resultado">Presiona el botón para iniciar la cámara.</div>
+  <button onclick="iniciarEscaner()">Iniciar cámara</button>
+
+  <script>
+    const URL_SISTEMA = "https://script.google.com/macros/s/AKfycbxYxv1yxqu0UbhFuYjlza33VFk6FZSfX0pcdwMaXxJ7VUFObrTyKYZXi3KJ3e3LS7nj/exec";
+    let escaner = null;
+    let procesando = false;
+
+    function iniciarEscaner() {
+      const resultado = document.getElementById("resultado");
+      if (escaner) return;
+
+      escaner = new Html5Qrcode("lector");
+      escaner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        async (token) => {
+          if (procesando) return;
+          procesando = true;
+          resultado.textContent = "QR leído. Registrando asistencia...";
+          try {
+            await escaner.stop();
+            escaner = null;
+            window.location.href = URL_SISTEMA +
+              "?accion=asistencia&token=" + encodeURIComponent(token);
+          } catch (error) {
+            resultado.textContent = "Error al detener la cámara: " + error;
+            procesando = false;
+          }
+        },
+        () => {}
+      ).catch(error => {
+        escaner = null;
+        resultado.textContent = "No se pudo abrir la cámara: " + error;
+      });
+    }
+  </script>
+</body>
+</html>
