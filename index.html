@@ -7,6 +7,7 @@
   <title>Escáner QR - Gimnasio</title>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -86,21 +87,53 @@
   try {
     resultado.textContent = "Leyendo imagen...";
 
-    const lector = new ZXing.BrowserQRCodeReader();
-    const imagen = URL.createObjectURL(archivo);
+    const imagen = await createImageBitmap(archivo);
+    const escala = 3;
+    const margen = 60;
 
-    const token = await lector.decodeFromImageUrl(imagen);
+    const canvas = document.createElement("canvas");
+    canvas.width = imagen.width * escala + margen * 2;
+    canvas.height = imagen.height * escala + margen * 2;
 
-    URL.revokeObjectURL(imagen);
+    const contexto = canvas.getContext("2d", {
+      willReadFrequently: true
+    });
+
+    contexto.fillStyle = "#ffffff";
+    contexto.fillRect(0, 0, canvas.width, canvas.height);
+
+    contexto.imageSmoothingEnabled = false;
+    contexto.drawImage(
+      imagen,
+      margen,
+      margen,
+      imagen.width * escala,
+      imagen.height * escala
+    );
+
+    const datos = contexto.getImageData(
+      0, 0, canvas.width, canvas.height
+    );
+
+    const codigo = jsQR(
+      datos.data,
+      datos.width,
+      datos.height,
+      { inversionAttempts: "attemptBoth" }
+    );
+
+    if (!codigo) {
+      throw new Error("No se detectó ningún QR en la imagen.");
+    }
 
     resultado.textContent = "QR leído. Registrando asistencia...";
 
     window.location.href = URL_SISTEMA +
       "?accion=asistencia&token=" +
-      encodeURIComponent(token.text);
+      encodeURIComponent(codigo.data);
 
   } catch (error) {
-    resultado.textContent = "Error ZXing: " + error.message;
+    resultado.textContent = "Error al leer QR: " + error.message;
   }
 }
   </script>
