@@ -103,6 +103,7 @@
     contexto.fillRect(0, 0, canvas.width, canvas.height);
 
     contexto.imageSmoothingEnabled = false;
+
     contexto.drawImage(
       imagen,
       margen,
@@ -112,7 +113,10 @@
     );
 
     const datos = contexto.getImageData(
-      0, 0, canvas.width, canvas.height
+      0,
+      0,
+      canvas.width,
+      canvas.height
     );
 
     const codigo = jsQR(
@@ -136,6 +140,6 @@
     resultado.textContent = "Error al leer QR: " + error.message;
   }
 }
-  </script>
+</script>
 </body>
 </html>
