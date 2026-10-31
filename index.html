@@ -86,15 +86,20 @@
 
   try {
     resultado.textContent = "Leyendo imagen...";
+
     const token = await lectorImagen.scanFile(archivo, true);
+
     await lectorImagen.clear();
 
     resultado.textContent = "QR leído. Registrando asistencia...";
+
     window.location.href = URL_SISTEMA +
       "?accion=asistencia&token=" + encodeURIComponent(token);
 
   } catch (error) {
-    resultado.textContent = "No se pudo leer el QR. Intenta con otra imagen.";
+    resultado.textContent =
+      "Error al leer QR: " + String(error);
+
     try {
       await lectorImagen.clear();
     } catch (e) {}
